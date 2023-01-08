@@ -7,7 +7,7 @@ const {
   updateContact,
   updateFavorite,
 } = require("../../models/contacts");
-const schema = require("../../utils/validation/validation");
+const { schema, schemaFavorite } = require("../../utils/validation/validation");
 
 const router = express.Router();
 
@@ -78,8 +78,8 @@ router.put("/:contactId", async (req, res) => {
 
 router.patch("/:contactId", async (req, res) => {
   try {
-    if (!req.body.favorite)
-      res.status(400).json({ message: "missing field favorite" });
+    if (schemaFavorite.validate(req.body).error)
+      return res.status(400).json({ message: "missing field favorite" });
     const id = req.params.contactId;
     const updatedContact = await updateFavorite(id, req.body);
     res.status(200).send(updatedContact);

@@ -2,7 +2,7 @@ const { Contact } = require("../utils/schema/contactsSchema");
 require("dotenv").config();
 
 const listContacts = async () => {
-  return Contact.find();
+  return await Contact.find();
 };
 
 const getContactById = async (contactId) => {
