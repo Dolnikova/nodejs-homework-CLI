@@ -1,12 +1,13 @@
 const express = require("express");
-const schema = require("../../utils/validation/validation");
 const {
   listContacts,
   getContactById,
   addContact,
   removeContact,
   updateContact,
+  updateFavorite,
 } = require("../../models/contacts");
+const schema = require("../../utils/validation/validation");
 
 const router = express.Router();
 
@@ -69,6 +70,18 @@ router.put("/:contactId", async (req, res) => {
 
     const id = req.params.contactId;
     const updatedContact = await updateContact(id, data.value);
+    res.status(200).send(updatedContact);
+  } catch (error) {
+    res.status(404).json({ message: "Not found" });
+  }
+});
+
+router.patch("/:contactId", async (req, res) => {
+  try {
+    if (!req.body.favorite)
+      res.status(400).json({ message: "missing field favorite" });
+    const id = req.params.contactId;
+    const updatedContact = await updateFavorite(id, req.body);
     res.status(200).send(updatedContact);
   } catch (error) {
     res.status(404).json({ message: "Not found" });

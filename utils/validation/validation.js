@@ -11,8 +11,6 @@ const schema = Joi.object({
       tlds: { allow: ["com", "net", "uk"] },
     })
     .required(),
-})
-  .with("name", "phone")
-  .with("email", "phone");
+});
 
-module.exports = { schema };
+module.exports = schema;
