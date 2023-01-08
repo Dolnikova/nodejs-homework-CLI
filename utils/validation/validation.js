@@ -11,8 +11,6 @@ const schema = Joi.object({
       tlds: { allow: ["com", "net", "uk"] },
     })
     .required(),
-})
-  .with("name", "phone")
-  .with("email", "phone");
-
-module.exports = { schema };
+});
+const schemaFavorite = Joi.object({ favorite: Joi.boolean().required() });
+module.exports = { schema, schemaFavorite };

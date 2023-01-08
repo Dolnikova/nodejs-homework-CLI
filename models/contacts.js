@@ -1,13 +1,8 @@
-const fs = require("fs").promises;
-const path = require("path");
-const { v4: uuidv4 } = require("uuid");
-
-const contactsPath = path.join(__dirname, "contacts.json");
+const { Contact } = require("../utils/schema/contactsSchema");
+require("dotenv").config();
 
 const listContacts = async () => {
-  const contactsList = JSON.parse(await fs.readFile(contactsPath));
-
-  return contactsList;
+  return await Contact.find();
 };
 
 const getContactById = async (contactId) => {
@@ -17,28 +12,25 @@ const getContactById = async (contactId) => {
 };
 
 const removeContact = async (contactId) => {
-  let contactsList = await listContacts();
-  const newContacts = contactsList.filter((item) => item.id !== contactId);
-  await fs.writeFile(contactsPath, JSON.stringify(newContacts));
-
-  return contactsList;
+  return await Contact.deleteOne({ _id: { $eq: contactId } });
 };
 
 const addContact = async ({ name, email, phone }) => {
-  let contactsList = await listContacts();
-  const contact = { id: uuidv4(), name, email, phone };
-  contactsList.push(contact);
-  await fs.writeFile(contactsPath, JSON.stringify(contactsList));
-  console.log(contact);
-  return contactsList;
+  const contact = await Contact.create({
+    name,
+    email,
+    phone,
+  });
+  return contact;
 };
 
 const updateContact = async (contactId, body) => {
-  let contactsList = await listContacts();
-  const idx = contactsList.find((item) => item.id === contactId);
-  idx = { id: contactId, ...body };
-  await fs.writeFile(contactsPath, JSON.stringify(contactsList));
-  return contactsList;
+  await Contact.updateOne({ _id: { $eq: contactId } }, { ...body });
+  return { message: "Contact updated succesfully" };
+};
+
+const updateFavorite = async (contactId, body) => {
+  await Contact.updateOne({ _id: { $eq: contactId } }, { ...body });
 };
 
 module.exports = {
@@ -47,4 +39,5 @@ module.exports = {
   removeContact,
   addContact,
   updateContact,
+  updateFavorite,
 };
