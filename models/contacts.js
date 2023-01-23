@@ -1,5 +1,5 @@
-const { Contact } = require("../utils/schema/contactsSchema");
-require("dotenv").config();
+const { Contact } = require('../utils/schema/contactsSchema');
+require('dotenv').config();
 
 const listContacts = async () => {
   return await Contact.find();
@@ -25,8 +25,12 @@ const addContact = async ({ name, email, phone }) => {
 };
 
 const updateContact = async (contactId, body) => {
-  await Contact.updateOne({ _id: { $eq: contactId } }, { ...body });
-  return { message: "Contact updated succesfully" };
+  try {
+    await Contact.updateOne({ _id: { $eq: contactId } }, { ...body });
+    return { message: 'Contact updated succesfully' };
+  } catch (error) {
+    return null;
+  }
 };
 
 const updateFavorite = async (contactId, body) => {

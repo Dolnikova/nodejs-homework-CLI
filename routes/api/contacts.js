@@ -1,4 +1,5 @@
-const express = require("express");
+const express = require('express');
+const { HttpError } = require('../../helpers/errors');
 const {
   listContacts,
   getContactById,
@@ -6,85 +7,85 @@ const {
   removeContact,
   updateContact,
   updateFavorite,
-} = require("../../models/contacts");
-const { schema, schemaFavorite } = require("../../utils/validation/validation");
+} = require('../../models/contacts');
+const { schema, schemaFavorite } = require('../../utils/validation/validation');
 
 const router = express.Router();
 
-router.get("/", async (req, res) => {
+router.get('/', async (req, res) => {
   let contactsList = await listContacts();
   res.json(contactsList);
 });
 
-router.get("/:contactId", async (req, res, next) => {
+router.get('/:contactId', async (req, res, next) => {
   try {
     const { contactId } = req.params;
     let contact = await getContactById(contactId);
     if (!contact) {
-      throw new Error(errorMessage);
+      throw new HttpError(404, 'Not found');
     }
     res.status(200).json(contact);
   } catch (error) {
-    res.status(404);
-    next();
+    next(error);
   }
 });
 
-router.post("/", async (req, res) => {
+router.post('/', async (req, res, next) => {
   try {
     const data = schema.validate(req.body);
     if (data.error) {
-      throw data.error.details[0].context.key;
+      throw new HttpError(
+        400,
+        `missing required ${data.error.details[0].context.key} field`
+      );
     }
     const contacts = await addContact(data.value);
 
     res.status(201).json(contacts);
   } catch (error) {
-    res.status(400).json({ message: `missing required ${error} field ` });
+    next(error);
   }
 });
 
-router.delete("/:contactId", async (req, res, next) => {
+router.delete('/:contactId', async (req, res, next) => {
   try {
     const { contactId } = req.params;
     let contacts = await removeContact(contactId);
-    if (!contacts) throw new Error(errorMessage);
+    if (!contacts) throw new HttpError(404, 'Not found');
     res.status(204).json(contacts);
   } catch (error) {
-    res.status(404);
-    next();
+    next(error);
   }
 });
 
-router.put("/:contactId", async (req, res) => {
+router.put('/:contactId', async (req, res, next) => {
   try {
     const data = schema.validate(req.body);
 
     if (data.error) {
       const errorField = data.error.details[0].context.key;
-
-      return res
-        .status(400)
-        .json({ message: `missing required ${errorField} field` });
+      throw new HttpError(400, `missing required ${errorField} field`);
     }
 
     const id = req.params.contactId;
     const updatedContact = await updateContact(id, data.value);
+    if (!updatedContact) throw new HttpError(404, 'Contact not found');
     res.status(200).send(updatedContact);
   } catch (error) {
-    res.status(404).json({ message: "Not found" });
+    next(error);
   }
 });
 
-router.patch("/:contactId", async (req, res) => {
+router.patch('/:contactId', async (req, res, next) => {
   try {
     if (schemaFavorite.validate(req.body).error)
-      return res.status(400).json({ message: "missing field favorite" });
+      throw new HttpError(400, 'missing field favorite');
     const id = req.params.contactId;
     const updatedContact = await updateFavorite(id, req.body);
+    if (!updatedContact) throw new HttpError(404, 'Contact not found');
     res.status(200).send(updatedContact);
   } catch (error) {
-    res.status(404).json({ message: "Not found" });
+    next(error);
   }
 });
 
