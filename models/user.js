@@ -1,12 +1,20 @@
-const { User } = require("../utils/schema/userSchema");
-
-require("dotenv").config();
+const { User } = require('../utils/schema/userSchema');
+const bcrypt = require('bcryptjs');
+require('dotenv').config();
+const gravatar = require('gravatar');
 
 // створення нового юзера
 const createUser = async (body) => {
   const salt = await bcrypt.genSalt();
   const hashedPassword = await bcrypt.hash(body.password, salt);
-  const user = await User.create({ ...body, password: hashedPassword });
+
+  const avatarURL = gravatar.url(body.email);
+
+  const user = await User.create({
+    ...body,
+    password: hashedPassword,
+    avatarURL,
+  });
   user.password = null;
   return user;
 };

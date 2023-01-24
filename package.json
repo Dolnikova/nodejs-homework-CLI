@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/Dolnikova/nodejs-homework-CLI#readme",
   "scripts": {
+    "test": "jest",
     "start": "cross-env NODE_ENV=production node ./server.js",
     "start:dev": "cross-env NODE_ENV=development nodemon ./server.js",
     "lint": "eslint **/*.js",
@@ -28,10 +29,15 @@
     "cross-env": "7.0.3",
     "dotenv": "^16.0.3",
     "express": "4.17.1",
+    "gravatar": "^1.8.2",
+    "jest": "^29.3.1",
+    "jimp": "^0.16.2",
     "joi": "^17.7.0",
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^6.8.3",
     "morgan": "1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "path": "^0.12.7",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
