@@ -12,7 +12,7 @@ const userSchema = Joi.object({
     .min(6)
     .pattern(new RegExp('^[a-zA-Z0-9]{6,30}$'))
     .required(),
-  access_token: [Joi.string(), Joi.number()],
+  verificationToken: Joi.string(),
 });
 const schema = Joi.object({
   name: Joi.string().alphanum().min(3).max(30).required(),
@@ -28,4 +28,14 @@ const schema = Joi.object({
 });
 
 const schemaFavorite = Joi.object({ favorite: Joi.boolean().required() });
-module.exports = { schema, schemaFavorite, userSchema };
+
+const verifyEmailSchema = Joi.object({
+  email: Joi.string()
+    .email({
+      minDomainSegments: 2,
+      tlds: { allow: ['com', 'net', 'uk'] },
+    })
+    .required(),
+});
+
+module.exports = { schema, schemaFavorite, userSchema, verifyEmailSchema };

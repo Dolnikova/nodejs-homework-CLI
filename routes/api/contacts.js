@@ -1,6 +1,6 @@
 const express = require('express');
 const {
-  ListController,
+  getContactsController,
   getContactByIdController,
   addContactController,
   removeContacController,
@@ -10,7 +10,7 @@ const {
 
 const router = express.Router();
 
-router.get('/', ListController);
+router.get('/', getContactsController);
 
 router.get('/:contactId', getContactByIdController);
 
