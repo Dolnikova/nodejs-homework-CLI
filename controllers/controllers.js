@@ -6,7 +6,7 @@ const { HttpError } = require('../helpers/errors');
 const { schema, schemaFavorite } = require('../utils/validation/validation');
 const fs = require('fs/promises');
 const path = require('path');
-const { v4 } = require('uuid');
+const { v4: uuidv4 } = require('uuid');
 const Jimp = require('jimp');
 
 const {
@@ -17,6 +17,7 @@ const {
   updateContact,
   updateFavorite,
 } = require('../models/contacts');
+const sendEmail = require('../helpers/sendEmail');
 
 //// auth controllers
 const registrationController = async (req, res, next) => {
@@ -27,7 +28,11 @@ const registrationController = async (req, res, next) => {
       throw new HttpError(409, 'Email is in use');
     }
 
-    const { email } = await createUser(req.body);
+    const { email } = await createUser({
+      ...req.body,
+      verificationToken: uuidv4(),
+    });
+
     res.status(201).json({ user: email });
   } catch (error) {
     next(error);
@@ -40,8 +45,9 @@ const loginController = async (req, res, next) => {
     const storedUser = await User.findOne({
       email,
     });
+
     if (!storedUser) {
-      throw new HttpError(401, 'email or password is not valid');
+      throw new HttpError(401, 'email or password is not valid ');
     }
 
     const isPasswordValid = await bcrypt.compare(password, storedUser.password);
@@ -77,7 +83,7 @@ const currentUserController = async (req, res) => {
   });
 };
 /// contacts controllers
-const ListController = async (req, res) => {
+const getContactsController = async (req, res) => {
   let contactsList = await listContacts();
   res.json(contactsList);
 };
@@ -176,16 +182,58 @@ const updateAvatar = async (req, res, next) => {
     next({ message: 'Iternal server error' });
   }
 };
+
+// SendGrid API controllers
+const verifyEmail = async (req, res, next) => {
+  try {
+    const { verificationToken } = req.params;
+
+    const user = await User.findOne({ verificationToken });
+    if (!user) {
+      throw new HttpError(404, 'User not found');
+    }
+    await User.findByIdAndUpdate(user._id, {
+      verify: true,
+      verificationToken: null,
+    });
+    res.status(200).json({
+      message: 'Verification successful',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+const VerifyEmailAgain = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const user = await findUserByEmail(email);
+    if (user.verify)
+      throw new HttpError(400, 'Verification has already been passed');
+    if (user) {
+      await User.findByIdAndUpdate({ _id: user._id });
+
+      await sendEmail(user.email, user.verificationToken);
+      res.status(200).json({
+        message: 'Verification email sent',
+      });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   registrationController,
   loginController,
   logoutController,
   currentUserController,
-  ListController,
+  getContactsController,
   getContactByIdController,
   addContactController,
   removeContacController,
   updateContactController,
   updateFavoriteController,
   updateAvatar,
+  verifyEmail,
+  VerifyEmailAgain,
 };

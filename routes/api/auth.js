@@ -1,5 +1,8 @@
 const express = require('express');
-const { userSchema } = require('../../utils/validation/validation');
+const {
+  userSchema,
+  verifyEmailSchema,
+} = require('../../utils/validation/validation');
 const {
   authenticate,
   validateBody,
@@ -11,6 +14,8 @@ const {
   logoutController,
   currentUserController,
   updateAvatar,
+  verifyEmail,
+  VerifyEmailAgain,
 } = require('../../controllers/controllers');
 
 const router = express.Router();
@@ -22,5 +27,7 @@ router.post('/login', validateBody(userSchema), loginController);
 router.patch('/logout', authenticate, logoutController);
 router.get('/current', authenticate, currentUserController);
 router.patch('/avatars', authenticate, upload.single('avatar'), updateAvatar);
+router.get('/verify/:verificationToken', verifyEmail);
+router.post('/verify', validateBody(verifyEmailSchema), VerifyEmailAgain);
 
 module.exports = router;
